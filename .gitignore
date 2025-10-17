@@ -2,12 +2,22 @@
 
 # dependencies
 node_modules/
+package-lock.json
 
 # Expo
 .expo/
+.expo-shared/
 dist/
 web-build/
 expo-env.d.ts
+
+# build artifacts
+android/
+ios/
+web-build/
+dist/
+build/
+.cache/
 
 # Native
 .kotlin/
@@ -29,6 +39,7 @@ yarn-error.*
 # macOS
 .DS_Store
 *.pem
+.env
 
 # local env files
 .env*.local
