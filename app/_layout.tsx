@@ -1,50 +1,69 @@
 import "react-native-reanimated";
 
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
-import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import "react-native-reanimated";
+
+import { auth } from "@/firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
+
+import { useAuthStore } from "@/stores/auth";
 
 import { useColorScheme } from "@/components/useColorScheme";
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from "expo-router";
+export { ErrorBoundary } from "expo-router";
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: "(tabs)",
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-    ...FontAwesome.font,
-  });
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+  const segments = useSegments();
+  const router = useRouter();
+  const { user, setUser } = useAuthStore();
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    const unsub = onAuthStateChanged(auth, (u) => {
+      useAuthStore.setState({ user: u, initializing: false });
+    });
+    return unsub;
+  }, []);
 
-  if (!loaded) {
-    return null;
-  }
+  useEffect(() => {
+    const inAuth = segments[0] === "(auth)";
+    const inApp = segments[0] === "(app)";
 
-  return <RootLayoutNav />;
+    const { initializing, user } = useAuthStore.getState();
+    if (initializing) return;
+
+    if (!user && inApp) router.replace("/(auth)/login");
+    if (user && inAuth) router.replace("/");
+  }, [segments]);
+
+  // const [loaded, error] = useFonts({
+  //   SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+  //   ...FontAwesome.font,
+  // });
+
+  // // Expo Router uses Error Boundaries to catch errors in the navigation tree.
+  // useEffect(() => {
+  //   if (error) throw error;
+  // }, [error]);
+
+  // useEffect(() => {
+  //   if (loaded) {
+  //     SplashScreen.hideAsync();
+  //   }
+  // }, [loaded]);
+
+  // if (!loaded) {
+  //   return null;
+  // }
+
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
 
 function RootLayoutNav() {
