@@ -3,14 +3,16 @@ module.exports = function (api) {
   return {
     presets: ["babel-preset-expo"],
     plugins: [
-      "expo-router/babel",
-      [
-        "module-resolver",
-        {
-          alias: { "@": "./", "@assets": "./assets", "@components": "./components", "@stores": "./stores" },
-          extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
-        },
-      ],
+      //       "nativewind/babel",
+      //       "expo-router/babel",
+      "react-native-reanimated/plugin",
+      //       // [
+      //       //   "module-resolver",
+      //       //   {
+      //       //     alias: { "@": "./", "@assets": "./assets", "@components": "./components", "@stores": "./stores" },
+      //       //     extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
+      //       //   },
+      //       // ],
     ],
   };
 };
