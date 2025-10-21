@@ -1,478 +1,274 @@
-// app/(auth)/signup.tsx
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { SafeAreaView, ScrollView } from "react-native";
+import { Controller, FieldErrors } from "react-hook-form";
+import { Button, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from "react-native";
 
-import {
-  Box,
-  Button,
-  ButtonText,
-  FormControl,
-  FormControlError,
-  FormControlErrorText,
-  FormControlLabel,
-  FormControlLabelText,
-  HStack,
-  Input,
-  InputField,
-  Pressable,
-  Text,
-  VStack,
-} from "@gluestack-ui/themed";
+import { useSignUpForm } from "@/hooks/useSignUpForm";
+import { type SignUpInput } from "@/schemas/authSchema";
+import { useAuthStore } from "@/stores/auth";
 
-import { SignUpSchema, type SignUpInput } from "@/schemas/authSchema";
+// TODO
+// [ ] Firebase Authentication 연동
+// [ ] 에러 핸들링 (네트워크 오류, 중복 가입 등)
+// [ ] 가입 후 축하 화면
+// [ ] 회원가입 버튼 토스트 UI (성공/실패)
 
 export default function SignUpScreen() {
   const router = useRouter();
+
   const [showPw, setShowPw] = useState(false);
   const [showPw2, setShowPw2] = useState(false);
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors, isValid, isSubmitting },
-  } = useForm<SignUpInput>({
-    resolver: zodResolver(SignUpSchema),
-    mode: "onChange",
-    defaultValues: { id: "", email: "", name: "", password: "", confirm: "" },
-  });
+  const setSignUpField = useAuthStore((s) => s.setSignUpField);
+
+  const { control, handleSubmit } = useSignUpForm(); // 그대로 써도 되고, messages/UI는 표시 안 해도 OK
 
   const onSubmit = async (data: SignUpInput) => {
-    console.log("signup payload:", data);
-    router.replace("/login");
+    console.log("[SUBMIT OK] data", data);
+    // await signUpWithEmail(...);  // 여기서 Firebase 호출
   };
 
+  const onInvalid = (err: FieldErrors<SignUpInput>) => {
+    console.log("[SUBMIT ERR]", err);
+    alert("입력을 확인해 주세요.");
+  };
+
+  // TODO: Firebase 가입 로직 연결
+
+  // const onSubmit = async (data: SignUpInput) => {
+  //   try {
+  //     await signUpWithEmail({
+  //       email: data.email,
+  //       password: data.password,
+  //       displayName: data.name,
+  //       handle: data.id,
+  //     });
+
+  //     Alert.alert("회원가입 완료", "로그인 화면으로 이동합니다.");
+  //     router.replace("/login");
+  //   } catch (e: any) {
+  //     Alert.alert("회원가입 실패", e?.message ?? "다시 시도해 주세요.");
+  //   }
+  // };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
-      <ScrollView keyboardShouldPersistTaps='handled' contentContainerStyle={{ paddingBottom: 24 }}>
-        <Box px='$6' pt='$8'>
-          <VStack space='xs'>
-            <Text size='2xl' bold color='$backgroundLight900'>
-              회원가입
-            </Text>
-            <Text size='sm' color='$textLight500'>
-              필수 정보를 입력해 주세요.
-            </Text>
-          </VStack>
+    <SafeAreaView style={styles.safe}>
+      {/* <ScrollView keyboardShouldPersistTaps='handled' contentContainerStyle={styles.scrollContent}> */}
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>회원가입</Text>
+          <Text style={styles.subtitle}>필수 정보를 입력해 주세요.</Text>
+        </View>
 
-          {/* 아이디 */}
-          <FormControl isInvalid={!!errors.id} mt='$6'>
-            <FormControlLabel>
-              <FormControlLabelText color='$backgroundLight900'>아이디</FormControlLabelText>
-            </FormControlLabel>
-            <Controller
-              control={control}
-              name='id'
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input mt='$2' variant='outline' borderColor={errors.id ? "$red600" : "$borderLight200"} bg='$backgroundLight0'>
-                  <InputField
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    autoCapitalize='none'
-                    autoCorrect={false}
-                    placeholder='예: hee_developer'
-                  />
-                </Input>
-              )}
-            />
-            {errors.id && (
-              <FormControlError mt='$2'>
-                <FormControlErrorText>{errors.id.message}</FormControlErrorText>
-              </FormControlError>
+        {/* 아이디 */}
+        <View style={styles.fieldWrap}>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>아이디</Text>
+          </View>
+          <Controller
+            control={control}
+            name='id'
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                style={styles.input}
+                value={value}
+                onChangeText={(v) => {
+                  onChange(v);
+                  setSignUpField("id", v);
+                }}
+                onBlur={onBlur}
+                autoCapitalize='none'
+                autoCorrect={false}
+                placeholder='아이디를 입력해주세요'
+                placeholderTextColor='#999'
+              />
             )}
-          </FormControl>
+          />
+        </View>
 
-          {/* 이메일 */}
-          <FormControl isInvalid={!!errors.email} mt='$4'>
-            <FormControlLabel>
-              <FormControlLabelText color='$backgroundLight900'>이메일</FormControlLabelText>
-            </FormControlLabel>
-            <Controller
-              control={control}
-              name='email'
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input mt='$2' variant='outline' borderColor={errors.email ? "$red600" : "$borderLight200"} bg='$backgroundLight0'>
-                  <InputField
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    autoCapitalize='none'
-                    autoCorrect={false}
-                    keyboardType='email-address'
-                    placeholder='example@email.com'
-                  />
-                </Input>
-              )}
-            />
-            {errors.email && (
-              <FormControlError mt='$2'>
-                <FormControlErrorText>{errors.email.message}</FormControlErrorText>
-              </FormControlError>
+        {/* 이메일 */}
+        <View style={styles.fieldWrap}>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>이메일</Text>
+          </View>
+          <Controller
+            control={control}
+            name='email'
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                style={styles.input}
+                value={value}
+                onChangeText={(v) => {
+                  onChange(v);
+                  setSignUpField("email", v);
+                }}
+                onBlur={onBlur}
+                autoCapitalize='none'
+                autoCorrect={false}
+                keyboardType='email-address'
+                placeholder='이메일을 입력해주세요'
+                placeholderTextColor='#999'
+              />
             )}
-          </FormControl>
+          />
+        </View>
 
-          {/* 이름 */}
-          <FormControl isInvalid={!!errors.name} mt='$4'>
-            <FormControlLabel>
-              <FormControlLabelText color='$backgroundLight900'>이름</FormControlLabelText>
-            </FormControlLabel>
-            <Controller
-              control={control}
-              name='name'
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input mt='$2' variant='outline' borderColor={errors.name ? "$red600" : "$borderLight200"} bg='$backgroundLight0'>
-                  <InputField value={value} onChangeText={onChange} onBlur={onBlur} autoCapitalize='none' autoCorrect={false} placeholder='이름' />
-                </Input>
-              )}
-            />
-            {errors.name && (
-              <FormControlError mt='$2'>
-                <FormControlErrorText>{errors.name.message}</FormControlErrorText>
-              </FormControlError>
+        {/* 이름 */}
+        <View style={styles.fieldWrap}>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>이름</Text>
+          </View>
+          <Controller
+            control={control}
+            name='name'
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                style={styles.input}
+                value={value}
+                onChangeText={(v) => {
+                  onChange(v);
+                  setSignUpField("name", v);
+                }}
+                onBlur={onBlur}
+                autoCapitalize='none'
+                autoCorrect={false}
+                placeholder='이름을 입력해주세요'
+                placeholderTextColor='#999'
+              />
             )}
-          </FormControl>
+          />
+        </View>
 
-          {/* 비밀번호 */}
-          <FormControl isInvalid={!!errors.password} mt='$4'>
-            <FormControlLabel>
-              <FormControlLabelText color='$backgroundLight900'>비밀번호</FormControlLabelText>
-            </FormControlLabel>
-            <Controller
-              control={control}
-              name='password'
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input mt='$2' variant='outline' borderColor={errors.password ? "$red600" : "$borderLight200"} bg='$backgroundLight0'>
-                  <InputField
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    autoCapitalize='none'
-                    autoCorrect={false}
-                    secureTextEntry={!showPw}
-                    placeholder='영문/숫자 포함, 8자 이상'
-                  />
-                </Input>
-              )}
-            />
-            <Pressable
-              onPress={() => setShowPw((v) => !v)}
-              position='absolute'
-              right='$3'
-              top='$10'
-              px='$2'
-              py='$1'
-              accessibilityLabel='비밀번호 보기 전환'
-            >
-              <Text color='$textLight500'>{showPw ? "숨김" : "보기"}</Text>
-            </Pressable>
-            {errors.password && (
-              <FormControlError mt='$2'>
-                <FormControlErrorText>{errors.password.message}</FormControlErrorText>
-              </FormControlError>
+        {/* 비밀번호 */}
+        <View style={styles.fieldWrap}>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>비밀번호</Text>
+          </View>
+          <Controller
+            control={control}
+            name='password'
+            render={({ field: { onChange, onBlur, value } }) => (
+              <View>
+                <TextInput
+                  style={styles.input}
+                  value={value}
+                  onChangeText={onChange} // 스토어 저장 금지
+                  onBlur={onBlur}
+                  autoCapitalize='none'
+                  autoCorrect={false}
+                  secureTextEntry={!showPw}
+                  placeholder='비밀번호를 입력해주세요'
+                  placeholderTextColor='#999'
+                />
+                {/* <Pressable onPress={() => setShowPw((p) => !p)} accessibilityLabel='비밀번호 보기 전환' style={styles.eye}>
+                  <Text style={styles.eyeText}>{showPw ? "숨김" : "보기"}</Text>
+                </Pressable> */}
+              </View>
             )}
-          </FormControl>
+          />
+        </View>
 
-          {/* 비밀번호 확인 */}
-          <FormControl isInvalid={!!errors.confirm} mt='$4'>
-            <FormControlLabel>
-              <FormControlLabelText color='$backgroundLight900'>비밀번호 확인</FormControlLabelText>
-            </FormControlLabel>
-            <Controller
-              control={control}
-              name='confirm'
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input mt='$2' variant='outline' borderColor={errors.confirm ? "$red600" : "$borderLight200"} bg='$backgroundLight0'>
-                  <InputField
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    autoCapitalize='none'
-                    autoCorrect={false}
-                    secureTextEntry={!showPw2}
-                    placeholder='비밀번호 재입력'
-                  />
-                </Input>
-              )}
-            />
-            <Pressable
-              onPress={() => setShowPw2((v) => !v)}
-              position='absolute'
-              right='$3'
-              top='$10'
-              px='$2'
-              py='$1'
-              accessibilityLabel='비밀번호 확인 보기 전환'
-            >
-              <Text color='$textLight500'>{showPw2 ? "숨김" : "보기"}</Text>
-            </Pressable>
-            {errors.confirm && (
-              <FormControlError mt='$2'>
-                <FormControlErrorText>{errors.confirm.message}</FormControlErrorText>
-              </FormControlError>
+        {/* 비밀번호 확인 */}
+        <View style={styles.fieldWrap}>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>비밀번호 확인</Text>
+          </View>
+          <Controller
+            control={control}
+            name='confirm'
+            render={({ field: { onChange, onBlur, value } }) => (
+              <View>
+                <TextInput
+                  style={styles.input}
+                  value={value}
+                  onChangeText={onChange} // 스토어 저장 금지
+                  onBlur={onBlur}
+                  autoCapitalize='none'
+                  autoCorrect={false}
+                  secureTextEntry={!showPw2}
+                  placeholder='비밀번호를 재입력해주세요'
+                  placeholderTextColor='#999'
+                />
+                {/* <Pressable onPress={() => setShowPw2((p) => !p)} accessibilityLabel='비밀번호 확인 보기 전환' style={styles.eye}>
+                  <Text style={styles.eyeText}>{showPw2 ? "숨김" : "보기"}</Text>
+                </Pressable> */}
+              </View>
             )}
-          </FormControl>
+          />
+        </View>
 
-          {/* 제출/링크 */}
-          <VStack mt='$6' space='sm'>
-            <Button isDisabled={!isValid || isSubmitting} onPress={handleSubmit(onSubmit)}>
-              <ButtonText>{isSubmitting ? "처리 중..." : "회원가입"}</ButtonText>
-            </Button>
-
-            <HStack justifyContent='center'>
-              <Text size='sm' color='$textLight500'>
-                이미 계정이 있으신가요?{" "}
-                <Link href='/login' asChild>
-                  <Text size='sm' color='$blue600'>
-                    로그인하기
-                  </Text>
-                </Link>
-              </Text>
-            </HStack>
-          </VStack>
-        </Box>
-      </ScrollView>
+        {/* 제출/링크 */}
+        <View style={styles.submitWrap}>
+          <Button
+            title='회원가입'
+            onPress={() => {
+              console.log("[CLICK]");
+              handleSubmit(
+                (data) => {
+                  console.log("[SUBMIT OK]", data);
+                },
+                (err) => {
+                  console.log("[SUBMIT ERR]", err);
+                  alert("폼 유효성 오류");
+                }
+              )();
+            }}
+          />
+          {/* <Button
+              title='회원가입'
+              //onPress={handleSubmit(onSubmit)}
+              onPress={() => {
+                console.log("[CLICK]");
+                handleSubmit(onSubmit, onInvalid)(); // ← 즉시 실행으로 체인 확인
+              }}
+            /> */}
+          <View style={styles.loginRow}>
+            <Text style={styles.loginText}>이미 계정이 있으신가요? </Text>
+            <Link href='/login' asChild>
+              <Pressable>
+                <Text style={styles.loginLink}>로그인하기</Text>
+              </Pressable>
+            </Link>
+          </View>
+        </View>
+      </View>
+      {/* </ScrollView> */}
     </SafeAreaView>
   );
 }
 
-// import { zodResolver } from "@hookform/resolvers/zod";
-// import { Link, useRouter } from "expo-router";
-// import React, { useState } from "react";
-// import { Controller, useForm } from "react-hook-form";
-// import { SafeAreaView, ScrollView } from "react-native";
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: "white" },
+  scrollContent: { paddingBottom: 24 },
+  container: { paddingHorizontal: 24, paddingTop: 32 },
+  header: { marginBottom: 8 },
+  title: { fontSize: 24, fontWeight: "700", color: "#111827" },
+  subtitle: { fontSize: 13, color: "#6B7280", marginTop: 4 },
 
-// import {
-//   Box,
-//   Button,
-//   ButtonText,
-//   FormControl,
-//   FormControlError,
-//   FormControlErrorText,
-//   FormControlLabel,
-//   FormControlLabelText,
-//   HStack,
-//   Input,
-//   InputField,
-//   Pressable,
-//   Text,
-//   VStack,
-// } from "@gluestack-ui/themed";
+  fieldWrap: { marginTop: 16 },
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between", // 라벨 좌, 메시지 우
+    gap: 8,
+    marginBottom: 6,
+  },
+  label: { color: "#111827", fontWeight: "600" },
 
-// import { SignUpSchema, type SignUpInput } from "@/schemas/authSchema";
+  input: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: "white",
+  },
+  inputError: { borderColor: "#DC2626" },
+  eye: { position: "absolute", right: 8, top: 10, paddingHorizontal: 6, paddingVertical: 2 },
+  eyeText: { color: "#6B7280", fontSize: 12 },
 
-// export default function SignUpScreen() {
-//   const router = useRouter();
-//   const [showPw, setShowPw] = useState(false);
-//   const [showPw2, setShowPw2] = useState(false);
-
-//   const {
-//     control,
-//     handleSubmit,
-//     formState: { errors, isValid, isSubmitting },
-//   } = useForm<SignUpInput>({
-//     resolver: zodResolver(SignUpSchema),
-//     mode: "onChange",
-//     defaultValues: { id: "", email: "", name: "", password: "", confirm: "" },
-//   });
-
-//   const onSubmit = async (data: SignUpInput) => {
-//     // TODO: useMutation으로 API 연동
-//     console.log("signup payload:", data);
-//     router.replace("/login");
-//   };
-
-//   return (
-//     <SafeAreaView className='flex-1 bg-white '>
-//       <ScrollView keyboardShouldPersistTaps='handled' contentContainerStyle={{ paddingBottom: 24 }}>
-//         <Box className='px-6 pt-8'>
-//           <VStack className='space-y-2'>
-//             <Text className='text-2xl font-bold text-zinc-900 dark:text-zinc-50'>회원가입</Text>
-//             <Text className='text-sm text-zinc-500 dark:text-zinc-400'>필수 정보를 입력해 주세요.</Text>
-//           </VStack>
-
-//           {/* 아이디 */}
-//           <FormControl isInvalid={!!errors.id} className='mt-6'>
-//             <FormControlLabel>
-//               <FormControlLabelText className='text-zinc-900 dark:text-zinc-50'>아이디</FormControlLabelText>
-//             </FormControlLabel>
-//             <Controller
-//               control={control}
-//               name='id'
-//               render={({ field: { onChange, onBlur, value } }) => (
-//                 <Input className='mt-2'>
-//                   <InputField
-//                     value={value}
-//                     onChangeText={onChange}
-//                     onBlur={onBlur}
-//                     autoCapitalize='none'
-//                     autoCorrect={false}
-//                     placeholder='예: hee_developer'
-//                     placeholderTextColor='#9AA6B2'
-//                     className='text-[15px]'
-//                   />
-//                 </Input>
-//               )}
-//             />
-//             {errors.id && (
-//               <FormControlError>
-//                 <FormControlErrorText className='text-red-600'>{errors.id.message}</FormControlErrorText>
-//               </FormControlError>
-//             )}
-//           </FormControl>
-
-//           {/* 이메일 */}
-//           <FormControl isInvalid={!!errors.email} className='mt-4'>
-//             <FormControlLabel>
-//               <FormControlLabelText className='text-zinc-900 dark:text-zinc-50'>이메일</FormControlLabelText>
-//             </FormControlLabel>
-//             <Controller
-//               control={control}
-//               name='email'
-//               render={({ field: { onChange, onBlur, value } }) => (
-//                 <Input className='mt-2'>
-//                   <InputField
-//                     value={value}
-//                     onChangeText={onChange}
-//                     onBlur={onBlur}
-//                     autoCapitalize='none'
-//                     autoCorrect={false}
-//                     keyboardType='email-address'
-//                     placeholder='example@email.com'
-//                     placeholderTextColor='#9AA6B2'
-//                     className='text-[15px]'
-//                   />
-//                 </Input>
-//               )}
-//             />
-//             {errors.email && (
-//               <FormControlError>
-//                 <FormControlErrorText className='text-red-600'>{errors.email.message}</FormControlErrorText>
-//               </FormControlError>
-//             )}
-//           </FormControl>
-
-//           {/* 이름 */}
-//           <FormControl isInvalid={!!errors.name} className='mt-4'>
-//             <FormControlLabel>
-//               <FormControlLabelText className='text-zinc-900 dark:text-zinc-50'>이름</FormControlLabelText>
-//             </FormControlLabel>
-//             <Controller
-//               control={control}
-//               name='name'
-//               render={({ field: { onChange, onBlur, value } }) => (
-//                 <Input className='mt-2'>
-//                   <InputField
-//                     value={value}
-//                     onChangeText={onChange}
-//                     onBlur={onBlur}
-//                     autoCapitalize='none'
-//                     autoCorrect={false}
-//                     placeholder='이름'
-//                     placeholderTextColor='#9AA6B2'
-//                     className='text-[15px]'
-//                   />
-//                 </Input>
-//               )}
-//             />
-//             {errors.name && (
-//               <FormControlError>
-//                 <FormControlErrorText className='text-red-600'>{errors.name.message}</FormControlErrorText>
-//               </FormControlError>
-//             )}
-//           </FormControl>
-
-//           {/* 비밀번호 */}
-//           <FormControl isInvalid={!!errors.password} className='mt-4'>
-//             <FormControlLabel>
-//               <FormControlLabelText className='text-zinc-900 dark:text-zinc-50'>비밀번호</FormControlLabelText>
-//             </FormControlLabel>
-//             <Controller
-//               control={control}
-//               name='password'
-//               render={({ field: { onChange, onBlur, value } }) => (
-//                 <Input className='mt-2'>
-//                   <InputField
-//                     value={value}
-//                     onChangeText={onChange}
-//                     onBlur={onBlur}
-//                     autoCapitalize='none'
-//                     autoCorrect={false}
-//                     secureTextEntry={!showPw}
-//                     placeholder='영문/숫자 포함, 8자 이상'
-//                     placeholderTextColor='#9AA6B2'
-//                     className='pr-10 text-[15px]'
-//                   />
-//                 </Input>
-//               )}
-//             />
-//             <Pressable onPress={() => setShowPw((v) => !v)} className='absolute right-3 top-[50px] px-2 py-1' accessibilityLabel='비밀번호 보기 전환'>
-//               <Text className='text-zinc-500'>{showPw ? "숨김" : "보기"}</Text>
-//             </Pressable>
-//             {errors.password && (
-//               <FormControlError>
-//                 <FormControlErrorText className='text-red-600'>{errors.password.message}</FormControlErrorText>
-//               </FormControlError>
-//             )}
-//           </FormControl>
-
-//           {/* 비밀번호 확인 */}
-//           <FormControl isInvalid={!!errors.confirm} className='mt-4'>
-//             <FormControlLabel>
-//               <FormControlLabelText className='text-zinc-900 dark:text-zinc-50'>비밀번호 확인</FormControlLabelText>
-//             </FormControlLabel>
-//             <Controller
-//               control={control}
-//               name='confirm'
-//               render={({ field: { onChange, onBlur, value } }) => (
-//                 <Input className='mt-2'>
-//                   <InputField
-//                     value={value}
-//                     onChangeText={onChange}
-//                     onBlur={onBlur}
-//                     autoCapitalize='none'
-//                     autoCorrect={false}
-//                     secureTextEntry={!showPw2}
-//                     placeholder='비밀번호 재입력'
-//                     placeholderTextColor='#9AA6B2'
-//                     className='pr-10 text-[15px]'
-//                   />
-//                 </Input>
-//               )}
-//             />
-//             <Pressable
-//               onPress={() => setShowPw2((v) => !v)}
-//               className='absolute right-3 top-[50px] px-2 py-1'
-//               accessibilityLabel='비밀번호 확인 보기 전환'
-//             >
-//               <Text className='text-zinc-500'>{showPw2 ? "숨김" : "보기"}</Text>
-//             </Pressable>
-//             {errors.confirm && (
-//               <FormControlError>
-//                 <FormControlErrorText className='text-red-600'>{errors.confirm.message}</FormControlErrorText>
-//               </FormControlError>
-//             )}
-//           </FormControl>
-
-//           {/* 제출/하단 링크 */}
-//           <VStack className='mt-6 space-y-3'>
-//             <Button isDisabled={!isValid || isSubmitting} onPress={handleSubmit(onSubmit)} className={`${!isValid ? "opacity-60" : ""}`}>
-//               <ButtonText>{isSubmitting ? "처리 중..." : "회원가입"}</ButtonText>
-//             </Button>
-
-//             <HStack className='justify-center'>
-//               <Text className='text-sm text-zinc-500 dark:text-zinc-400'>
-//                 이미 계정이 있으신가요?{" "}
-//                 <Link href='/login' asChild>
-//                   <Text className='text-sm text-blue-600'>로그인하기</Text>
-//                 </Link>
-//               </Text>
-//             </HStack>
-//           </VStack>
-//         </Box>
-//       </ScrollView>
-//     </SafeAreaView>
-//   );
-// }
+  submitWrap: { marginTop: 24, gap: 12 },
+  loginRow: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
+  loginText: { fontSize: 13, color: "#6B7280" },
+  loginLink: { fontSize: 13, color: "#2563EB" },
+});
