@@ -1,11 +1,18 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo } from "react";
-import { useForm, useFormState, useWatch } from "react-hook-form";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemo } from 'react';
+import { useForm, useFormState, useWatch } from 'react-hook-form';
 
-import { SignUpSchema, type SignUpInput } from "@/schemas/authSchema";
-import { useAuthStore } from "@/stores/auth";
-import { confirmStatus, emailStatus, idStatus, nameStatus, passwordStatus, type FieldStatus } from "@/validations/fieldStatus";
-import { useEffect } from "react";
+import { SignUpSchema, type SignUpInput } from '@/schemas/authSchema';
+import { useAuthStore } from '@/stores/auth';
+import {
+  confirmStatus,
+  emailStatus,
+  idStatus,
+  nameStatus,
+  passwordStatus,
+  type FieldStatus,
+} from '@/validations/fieldStatus';
+import { useEffect } from 'react';
 
 export function useSignUpForm() {
   const signUpDraft = useAuthStore((s) => s.signUpDraft);
@@ -13,15 +20,15 @@ export function useSignUpForm() {
   // defaultValues는 빈 문자열로 보장
   const { control, handleSubmit } = useForm<SignUpInput>({
     resolver: zodResolver(SignUpSchema),
-    mode: "onChange",
-    reValidateMode: "onChange",
-    criteriaMode: "all",
+    mode: 'onChange',
+    reValidateMode: 'onChange',
+    criteriaMode: 'all',
     defaultValues: {
-      id: signUpDraft.id ?? "",
-      email: signUpDraft.email ?? "",
-      name: signUpDraft.name ?? "",
-      password: "",
-      confirm: "",
+      id: signUpDraft.id ?? '',
+      email: signUpDraft.email ?? '',
+      name: signUpDraft.name ?? '',
+      password: '',
+      confirm: '',
     },
   });
 
@@ -29,14 +36,38 @@ export function useSignUpForm() {
   const { errors, touchedFields, dirtyFields, isValid, isSubmitting } = useFormState({ control });
 
   // 필드 값 구독
-  const idVal = useWatch({ control, name: "id" });
-  const emailVal = useWatch({ control, name: "email" });
-  const nameVal = useWatch({ control, name: "name" });
-  const passwordVal = useWatch({ control, name: "password" });
-  const confirmVal = useWatch({ control, name: "confirm" });
+  const idVal = useWatch({ control, name: 'id' });
+  const emailVal = useWatch({ control, name: 'email' });
+  const nameVal = useWatch({ control, name: 'name' });
+  const passwordVal = useWatch({ control, name: 'password' });
+  const confirmVal = useWatch({ control, name: 'confirm' });
 
   useEffect(() => {
-    console.log("[SignUpForm]", {
+    console.log('[SignUpForm] 상태 변경:', {
+      idVal,
+      emailVal,
+      nameVal,
+      passwordVal: passwordVal ? '***' : '',
+      confirmVal: confirmVal ? '***' : '',
+      isValid,
+      errors: Object.keys(errors),
+      touchedFields: Object.keys(touchedFields),
+      dirtyFields: Object.keys(dirtyFields),
+    });
+  }, [
+    idVal,
+    emailVal,
+    nameVal,
+    passwordVal,
+    confirmVal,
+    isValid,
+    errors,
+    touchedFields,
+    dirtyFields,
+  ]);
+
+  useEffect(() => {
+    console.log('[SignUpForm]', {
       idVal,
       emailVal,
       nameVal,
@@ -47,13 +78,38 @@ export function useSignUpForm() {
       touchedFields,
       dirtyFields,
     });
-  }, [idVal, emailVal, nameVal, passwordVal, confirmVal, isValid, errors, touchedFields, dirtyFields]);
+  }, [
+    idVal,
+    emailVal,
+    nameVal,
+    passwordVal,
+    confirmVal,
+    isValid,
+    errors,
+    touchedFields,
+    dirtyFields,
+  ]);
 
   // 메시지 계산
   const messages = useMemo(() => {
-    const id: FieldStatus = idStatus({ value: idVal, error: errors.id, touched: touchedFields.id, dirty: dirtyFields.id });
-    const email: FieldStatus = emailStatus({ value: emailVal, error: errors.email, touched: touchedFields.email, dirty: dirtyFields.email });
-    const name: FieldStatus = nameStatus({ value: nameVal, error: errors.name, touched: touchedFields.name, dirty: dirtyFields.name });
+    const id: FieldStatus = idStatus({
+      value: idVal,
+      error: errors.id,
+      touched: touchedFields.id,
+      dirty: dirtyFields.id,
+    });
+    const email: FieldStatus = emailStatus({
+      value: emailVal,
+      error: errors.email,
+      touched: touchedFields.email,
+      dirty: dirtyFields.email,
+    });
+    const name: FieldStatus = nameStatus({
+      value: nameVal,
+      error: errors.name,
+      touched: touchedFields.name,
+      dirty: dirtyFields.name,
+    });
     const password: FieldStatus = passwordStatus({
       value: passwordVal,
       error: errors.password,

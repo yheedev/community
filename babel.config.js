@@ -1,26 +1,25 @@
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: ["babel-preset-expo"],
-    plugins: ["nativewind/babel", "react-native-reanimated/plugin"],
+    presets: ['babel-preset-expo'],
+    plugins: [
+      [
+        'module-resolver',
+        {
+          root: ['./'],
+          alias: {
+            '@': './',
+            '@assets': './assets',
+            '@components': './components',
+            '@stores': './stores',
+            '@hooks': './hooks',
+            '@services': './services',
+            '@schemas': './schemas',
+          },
+          extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+        },
+      ],
+      'react-native-reanimated/plugin',
+    ],
   };
 };
-
-// module.exports = function (api) {
-//   api.cache(true);
-//   return {
-//     presets: ["babel-preset-expo"],
-//     plugins: [
-//       "nativewind/babel",
-//       "expo-router/babel",
-//       "react-native-reanimated/plugin",
-//       [
-//         "module-resolver",
-//         {
-//           alias: { "@": "./", "@assets": "./assets", "@components": "./components", "@stores": "./stores" },
-//           extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
-//         },
-//       ],
-//     ],
-//   };
-// };

@@ -1,0 +1,48 @@
+import { auth, db } from '@/firebaseConfig';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from 'firebase/auth';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+
+export async function signUpWithEmail({
+  email,
+  password,
+  displayName,
+  handle,
+}: {
+  email: string;
+  password: string;
+  displayName: string;
+  handle: string;
+}) {
+  try {
+    console.log('회원가입 시작:', { email, displayName, handle });
+
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    console.log('Firebase Auth 계정 생성 완료:', cred.user.uid);
+
+    await updateProfile(cred.user, { displayName });
+    console.log('프로필 업데이트 완료');
+
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      uid: cred.user.uid,
+      email,
+      displayName,
+      handle,
+      createdAt: serverTimestamp(),
+    });
+    console.log('Firestore 문서 생성 완료');
+
+    return cred.user;
+  } catch (error) {
+    console.error('signUpWithEmail 에러:', error);
+    throw error;
+  }
+}
+
+export async function loginWithEmail(email: string, password: string) {
+  const { user } = await signInWithEmailAndPassword(auth, email, password);
+  return user;
+}
