@@ -49,23 +49,26 @@ export default function Landing() {
             />
 
             <View style={styles.ctaRow}>
-              <Link href='/(auth)/login' asChild>
+              <Link href='/login' asChild>
                 <Pressable
-                  style={({ pressed }) => [styles.loginButton, pressed && styles.buttonPressed]}
+                  onPress={() => {
+                    console.log('pressed');
+                  }}
+                  style={styles.button}
                   accessibilityRole='button'
                   accessibilityLabel='로그인 페이지로 이동'
                 >
-                  <Text style={styles.loginButtonText}>로그인</Text>
+                  <Text style={styles.buttonText}>로그인</Text>
                 </Pressable>
               </Link>
 
-              <Link href='/(auth)/signup' asChild>
+              <Link href='/signup' asChild>
                 <Pressable
-                  style={({ pressed }) => [styles.signupButton, pressed && styles.buttonPressed]}
+                  style={styles.button}
                   accessibilityRole='button'
                   accessibilityLabel='회원가입 페이지로 이동'
                 >
-                  <Text style={styles.signupButtonText}>회원가입</Text>
+                  <Text style={styles.buttonText}>회원가입</Text>
                 </Pressable>
               </Link>
             </View>
@@ -202,7 +205,7 @@ const styles = StyleSheet.create({
     height: 120,
   },
   scroll: { padding: 24 },
-  hero: { alignItems: 'center', gap: 12, marginTop: 30, marginBottom: 20 },
+  hero: { alignItems: 'center', gap: 12, marginTop: 50, marginBottom: 20 },
   title: { fontSize: 28, fontWeight: '700', letterSpacing: -0.2, textAlign: 'center' },
   subtitle: { fontSize: 15, textAlign: 'center' },
 
@@ -236,19 +239,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // 버튼 스타일
   ctaRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 12,
     marginTop: 24,
   },
-  loginButton: {
+
+  button: {
     paddingVertical: 14,
     paddingHorizontal: 32,
     borderRadius: 25,
-    borderWidth: 2,
-    borderColor: '#2563EB',
+
     backgroundColor: '#FFFFFF',
     minWidth: 120,
     alignItems: 'center',
@@ -258,29 +260,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  loginButtonText: {
+  buttonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2563EB',
+    color: 'black',
   },
-  signupButton: {
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 25,
-    backgroundColor: '#2563EB',
-    minWidth: 120,
-    alignItems: 'center',
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  signupButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
+
   buttonPressed: {
     opacity: 0.7,
     transform: [{ scale: 0.98 }],
