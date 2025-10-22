@@ -1,3 +1,3 @@
 export const Images = {
-  heroDance: require("../assets/images/dance.png"),
+  heroDance: require("../../assets/images/dance.png"),
 } as const;
